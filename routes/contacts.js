@@ -10,7 +10,7 @@ router.get('/', auth, async (req, res) => {
     const contacts = await Contact.find({ user: req.user.id }).sort({ date: -1 });
     res.json(contacts);
   } catch (error) {
-    console.error(error.message);
+    console.error(error.response.msg);
     res.status(500).send('Server Error');
   }
 });
@@ -41,12 +41,28 @@ router.post('/', [auth, [check('name', 'Name is required').not().isEmail()]], as
   }
 });
 
-router.patch('/:id', (req, res) => {
-  res.send('update contact');
+router.patch('/:id', async (req, res) => {
+  try {
+    const updatedContact = await Contact.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    console.log(updatedContact);
+    res.status(200).json(updatedContact);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server error');
+  }
 });
 
-router.delete('/:id', (req, res) => {
-  res.send('delete contact');
+router.delete('/:id', async (req, res) => {
+  try {
+    await Contact.findByIdAndDelete(req.params.id);
+    res.send('deleted');
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server error');
+  }
 });
 
 module.exports = router;
